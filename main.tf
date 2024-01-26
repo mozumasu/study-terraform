@@ -2,6 +2,8 @@ provider "aws"{
 	region="ap-northeast-1"
 }
 
+# ami (amazon machine image)の定義
+# data リソース名 ラベル名
 data "aws_ami" "recent_amazon_linux_2"{
 	most_recent = true
 	owners = ["amazon"]
