@@ -266,8 +266,34 @@ resource "aws_route_table_association" "example_public" {
 
 # プライベートネットワーク
 # プライベートサブネット
-# resource "aws_subnet" "example_rivate" {
-# 	vpc_id = aws_vpc.example_vpc.id
-# 	cider_block = "10.0.64.0/24"
-# 	availability_zone
-# }
+resource "aws_subnet" "example_private" {
+	vpc_id = aws_vpc.example_vpc.id
+	cidr_block = "10.0.64.0/24"
+	availability_zone = "ap-northeast-1a"
+	map_public_ip_on_launch = false
+
+	tags = {
+    	Name = "terraform_example_private_subnet"
+  }
+}
+
+# プライベートサブネットをルートテーブルと関連付け
+resource "aws_route_table" "example_private" {
+	vpc_id = aws_vpc.example_vpc.id
+}
+
+resource "aws_route_table_association" "example_private" {
+	subnet_id = aws_subnet.example_private.id
+	route_table_id = aws_route_table.example_private.id
+}
+
+# EIPとNATゲートウェイ
+#EIP
+resource "aws_eip" "example_nat_gateway" {
+	# domain = "vpc"
+	vpc = true
+	depends_on = [aws_internet_gateway.terraform_example]
+}
+
+# NATゲートウェイ
+# resource "aws_nat_gateway" "example"
