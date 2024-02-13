@@ -282,6 +282,7 @@ resource "aws_route_table" "example_private" {
 	vpc_id = aws_vpc.example_vpc.id
 }
 
+# ルートテーブルの関連付け
 resource "aws_route_table_association" "example_private" {
 	subnet_id = aws_subnet.example_private.id
 	route_table_id = aws_route_table.example_private.id
@@ -302,3 +303,16 @@ resource "aws_nat_gateway" "example_nat_gateway" {
 	subnet_id = aws_subnet.example_public.id
 	depends_on = [aws_internet_gateway.terraform_example]
 }
+
+# プライベートのルート
+resource "aws_route" "example_private" {
+	route_table_id = aws_route_table.example_private.id
+	nat_gateway_id = aws_nat_gateway.example_nat_gateway.id
+	destination_cidr_block = "0.0.0.0/0"
+}
+
+# パブリックネットワークのマルチAZ化
+# パブリックサブネット
+resource "aws_subnet" "example_public_0" {
+	vpc_id = aws_vpc.example_vpc.id
+	cidr_block = "
