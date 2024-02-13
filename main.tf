@@ -296,4 +296,9 @@ resource "aws_eip" "example_nat_gateway" {
 }
 
 # NATゲートウェイ
-# resource "aws_nat_gateway" "example"
+resource "aws_nat_gateway" "example_nat_gateway" {
+	allocation_id = aws_eip.example_nat_gateway.id
+	# パブリックサブネットを指定
+	subnet_id = aws_subnet.example_public.id
+	depends_on = [aws_internet_gateway.terraform_example]
+}
