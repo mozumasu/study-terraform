@@ -209,22 +209,22 @@ resource "aws_security_group" "example_ec2"{
 // VPC
 resource "aws_vpc" "example_vpc" {
   cidr_block           = "10.0.0.0/16"
-  // Amazon 提供の DNS サーバーを介した DNS 解決策をサポートするかどうかを決定
+  // Amazon DNS サーバーを使用するかどうか
   enable_dns_support   = true
-  // VPC がパブリック IP アドレスを持つインスタンスへのパブリック DNS ホスト名の割り当てをサポートするかどうかを決定
+  // Amazon DNS ホスト名を使用するかどうか
   enable_dns_hostnames = true
-  // VPCにタグを割り当てます。この例では、"Name" タグに "example-vpc" という値を設定しています。
-  // タグはリソースを識別しやすくするために役立ちます。
+
   tags = {
     Name = "terraform_example_vpc"
   }
 }
+
 # パブリックネットワーク
 # パブリックサブネット
 resource "aws_subnet" "example_public" {
   vpc_id = aws_vpc.example_vpc.id
   cidr_block = "10.0.0.0/24"
-  # サブネットで起動したインスタンスにパブリックIPアドレスを自動的に割り当てるかどうかを指定
+  # サブネットで起動したインスタンスにパブリックIPアドレスを自動的に割り当てるかどうか
   map_public_ip_on_launch = true
   availability_zone = "ap-northeast-1a"
 
@@ -251,7 +251,7 @@ resource "aws_route_table" "example_public" {
   }
 }
 
-# ルートの定義
+# ルート
 resource "aws_route" "example_public" {
 	route_table_id = aws_route_table.example_public.id
 	gateway_id = aws_internet_gateway.terraform_example.id
@@ -263,6 +263,7 @@ resource "aws_route_table_association" "example_public" {
 	subnet_id = aws_subnet.example_public.id
 	route_table_id = aws_route_table.example_public.id
 }
+
 
 # プライベートネットワーク
 # プライベートサブネット
@@ -277,9 +278,13 @@ resource "aws_subnet" "example_private" {
   }
 }
 
-# プライベートサブネットをルートテーブルと関連付け
+# プライベートサブネット用のルートテーブル
 resource "aws_route_table" "example_private" {
 	vpc_id = aws_vpc.example_vpc.id
+
+	tags = {
+		Name = "terraform_example_private_route_table"
+	}
 }
 
 # ルートテーブルの関連付け
@@ -304,15 +309,19 @@ resource "aws_nat_gateway" "example_nat_gateway" {
 	depends_on = [aws_internet_gateway.terraform_example]
 }
 
-# プライベートのルート
+# プライベートネットワークからインターネットへ通信するためのルート
 resource "aws_route" "example_private" {
 	route_table_id = aws_route_table.example_private.id
 	nat_gateway_id = aws_nat_gateway.example_nat_gateway.id
 	destination_cidr_block = "0.0.0.0/0"
 }
 
+
 # パブリックネットワークのマルチAZ化
 # パブリックサブネット
-resource "aws_subnet" "example_public_0" {
-	vpc_id = aws_vpc.example_vpc.id
-	cidr_block = "
+# resource "aws_subnet" "example_public_0" {
+# 	vpc_id = aws_vpc.example_vpc.id
+# 	cidr_block = "10.10.1.0/24"
+# 	availability_zone = "ap-northeast-1a"
+# 	map_public_ip_on_launch = true
+# }
