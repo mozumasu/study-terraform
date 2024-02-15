@@ -221,17 +221,17 @@ resource "aws_vpc" "example_vpc" {
 
 # パブリックネットワーク
 # パブリックサブネット
-resource "aws_subnet" "example_public" {
-  vpc_id = aws_vpc.example_vpc.id
-  cidr_block = "10.0.0.0/24"
-  # サブネットで起動したインスタンスにパブリックIPアドレスを自動的に割り当てるかどうか
-  map_public_ip_on_launch = true
-  availability_zone = "ap-northeast-1a"
+# resource "aws_subnet" "example_public" {
+#   vpc_id = aws_vpc.example_vpc.id
+#   cidr_block = "10.0.0.0/24"
+#   # サブネットで起動したインスタンスにパブリックIPアドレスを自動的に割り当てるかどうか
+#   map_public_ip_on_launch = true
+#   availability_zone = "ap-northeast-1a"
 
-	tags = {
-    Name = "terraform_example_public_subnet"
-  }
-}
+# 	tags = {
+#     Name = "terraform_example_public_subnet"
+#   }
+# }
 
 # インターネットゲートウェイ
 resource "aws_internet_gateway" "terraform_example" {
@@ -259,10 +259,10 @@ resource "aws_route" "example_public" {
 }
 
 # ルートテーブルの関連付け
-resource "aws_route_table_association" "example_public" {
-	subnet_id = aws_subnet.example_public.id
-	route_table_id = aws_route_table.example_public.id
-}
+# resource "aws_route_table_association" "example_public" {
+# 	subnet_id = aws_subnet.example_public.id
+# 	route_table_id = aws_route_table.example_public.id
+# }
 
 
 # プライベートネットワーク
@@ -305,7 +305,7 @@ resource "aws_eip" "example_nat_gateway" {
 resource "aws_nat_gateway" "example_nat_gateway" {
 	allocation_id = aws_eip.example_nat_gateway.id
 	# パブリックサブネットを指定
-	subnet_id = aws_subnet.example_public.id
+	subnet_id = aws_subnet.example_public_0.id
 	depends_on = [aws_internet_gateway.terraform_example]
 }
 
@@ -319,9 +319,33 @@ resource "aws_route" "example_private" {
 
 # パブリックネットワークのマルチAZ化
 # パブリックサブネット
-# resource "aws_subnet" "example_public_0" {
-# 	vpc_id = aws_vpc.example_vpc.id
-# 	cidr_block = "10.10.1.0/24"
-# 	availability_zone = "ap-northeast-1a"
-# 	map_public_ip_on_launch = true
-# }
+resource "aws_subnet" "example_public_0" {
+	vpc_id = aws_vpc.example_vpc.id
+	cidr_block = "10.0.1.0/24"
+	availability_zone = "ap-northeast-1a"
+	map_public_ip_on_launch = true
+
+	tags = {
+		Name = "terraform_example_public_subnet_0"
+	}
+}
+resource "aws_subnet" "example_public_1" {
+	vpc_id = aws_vpc.example_vpc.id
+	cidr_block = "10.0.2.0/24"
+	availability_zone = "ap-northeast-1c"
+	map_public_ip_on_launch = true
+
+	tags = {
+		Name = "terraform_example_public_subnet_1"
+	}
+}
+
+# ルートテーブルの関連付け
+resource "aws_route_table_association" "example_public_0" {
+	subnet_id = aws_subnet.example_public_0.id
+	route_table_id = aws_route_table.example_public.id
+}
+resource "aws_route_table_association" "example_public_1" {
+	subnet_id = aws_subnet.example_public_1.id
+	route_table_id = aws_route_table.example_public.id
+}
