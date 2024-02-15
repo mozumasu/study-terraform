@@ -267,54 +267,137 @@ resource "aws_route" "example_public" {
 
 # プライベートネットワーク
 # プライベートサブネット
-resource "aws_subnet" "example_private" {
+# マルチAZ化前
+# resource "aws_subnet" "example_private" {
+# 	vpc_id = aws_vpc.example_vpc.id
+# 	cidr_block = "10.0.64.0/24"
+# 	availability_zone = "ap-northeast-1a"
+# 	map_public_ip_on_launch = false
+
+# 	tags = {
+#     	Name = "terraform_example_private_subnet"
+#   }
+# }
+
+# プライベートサブネットマルチAZ化後
+resource "aws_subnet" "example_private_0" {
 	vpc_id = aws_vpc.example_vpc.id
-	cidr_block = "10.0.64.0/24"
+	cidr_block = "10.0.65.0/24"
 	availability_zone = "ap-northeast-1a"
 	map_public_ip_on_launch = false
 
 	tags = {
-    	Name = "terraform_example_private_subnet"
+    	Name = "terraform_example_private_subnet_0"
+  }
+}
+resource "aws_subnet" "example_private_1" {
+	vpc_id = aws_vpc.example_vpc.id
+	cidr_block = "10.0.66.0/24"
+	availability_zone = "ap-northeast-1c"
+	map_public_ip_on_launch = false
+
+	tags = {
+    	Name = "terraform_example_private_subnet_1"
   }
 }
 
-# プライベートサブネット用のルートテーブル
-resource "aws_route_table" "example_private" {
+# プライベートサブネット用のルートテーブル（マルチAZ化前）
+# resource "aws_route_table" "example_private" {
+# 	vpc_id = aws_vpc.example_vpc.id
+
+# 	tags = {
+# 		Name = "terraform_example_private_route_table"
+# 	}
+# }
+
+# プライベートサブネット用のルートテーブル（マルチAZ化後）
+resource "aws_route_table" "example_private_0" {
 	vpc_id = aws_vpc.example_vpc.id
 
 	tags = {
-		Name = "terraform_example_private_route_table"
+		Name = "terraform_example_private_route_table_0"
+	}
+}
+resource "aws_route_table" "example_private_1" {
+	vpc_id = aws_vpc.example_vpc.id
+
+	tags = {
+		Name = "terraform_example_private_route_table_1"
 	}
 }
 
-# ルートテーブルの関連付け
-resource "aws_route_table_association" "example_private" {
-	subnet_id = aws_subnet.example_private.id
-	route_table_id = aws_route_table.example_private.id
+# マルチAZ化したプライベートサブネット用のルート
+resource "aws_route" "example_private_0" {
+	route_table_id = aws_route_table.example_private_0.id
+	nat_gateway_id = aws_nat_gateway.example_nat_gateway_0.id
+	destination_cidr_block = "0.0.0.0/0"
+}
+resource "aws_route" "example_private_1" {
+	route_table_id = aws_route_table.example_private_1.id
+	nat_gateway_id = aws_nat_gateway.example_nat_gateway_1.id
+	destination_cidr_block = "0.0.0.0/0"
 }
 
-# EIPとNATゲートウェイ
+# ルートテーブルの関連付け(マルチAZ化前)
+# resource "aws_route_table_association" "example_private" {
+# 	subnet_id = aws_subnet.example_private.id
+# 	route_table_id = aws_route_table.example_private.id
+# }
+# ルートテーブルの関連付け(マルチAZ化後)
+resource "aws_route_table_association" "example_private_0" {
+	subnet_id = aws_subnet.example_private_0.id
+	route_table_id = aws_route_table.example_private_0.id
+}
+resource "aws_route_table_association" "example_private_1" {
+	subnet_id = aws_subnet.example_private_1.id
+	route_table_id = aws_route_table.example_private_1.id
+}
+
+# EIPとNATゲートウェイ(マルチAZ化前)
+# #EIP
+# resource "aws_eip" "example_nat_gateway" {
+# 	# domain = "vpc"
+# 	vpc = true
+# 	depends_on = [aws_internet_gateway.terraform_example]
+# }
+
+# resource "aws_nat_gateway" "example_nat_gateway" {
+# 	allocation_id = aws_eip.example_nat_gateway.id
+# 	# パブリックサブネットを指定
+# 	subnet_id = aws_subnet.example_public_0.id
+# 	depends_on = [aws_internet_gateway.terraform_example]
+# }
+
+# EIPとNATゲートウェイ(マルチAZ化後)
 #EIP
-resource "aws_eip" "example_nat_gateway" {
+resource "aws_eip" "example_nat_gateway_0" {
 	# domain = "vpc"
 	vpc = true
 	depends_on = [aws_internet_gateway.terraform_example]
 }
-
+resource "aws_eip" "example_nat_gateway_1" {
+	# domain = "vpc"
+	vpc = true
+	depends_on = [aws_internet_gateway.terraform_example]
+}
 # NATゲートウェイ
-resource "aws_nat_gateway" "example_nat_gateway" {
-	allocation_id = aws_eip.example_nat_gateway.id
-	# パブリックサブネットを指定
+resource "aws_nat_gateway" "example_nat_gateway_0" {
+	allocation_id = aws_eip.example_nat_gateway_0.id
 	subnet_id = aws_subnet.example_public_0.id
 	depends_on = [aws_internet_gateway.terraform_example]
 }
-
-# プライベートネットワークからインターネットへ通信するためのルート
-resource "aws_route" "example_private" {
-	route_table_id = aws_route_table.example_private.id
-	nat_gateway_id = aws_nat_gateway.example_nat_gateway.id
-	destination_cidr_block = "0.0.0.0/0"
+resource "aws_nat_gateway" "example_nat_gateway_1" {
+	allocation_id = aws_eip.example_nat_gateway_1.id
+	subnet_id = aws_subnet.example_public_1.id
+	depends_on = [aws_internet_gateway.terraform_example]
 }
+
+# プライベートネットワークからインターネットへ通信するためのルート(マルチAZ化前)
+# resource "aws_route" "example_private" {
+# 	route_table_id = aws_route_table.example_private.id
+# 	nat_gateway_id = aws_nat_gateway.example_nat_gateway.id
+# 	destination_cidr_block = "0.0.0.0/0"
+# }
 
 
 # パブリックネットワークのマルチAZ化
@@ -348,4 +431,23 @@ resource "aws_route_table_association" "example_public_0" {
 resource "aws_route_table_association" "example_public_1" {
 	subnet_id = aws_subnet.example_public_1.id
 	route_table_id = aws_route_table.example_public.id
+}
+
+
+# ファイヤーウォール
+# セキュリティグループ
+resource "aws_security_group" "example" {
+  name        = "terraform_example"
+  description = "Used in the terraform"
+  vpc_id      = aws_vpc.example_vpc.id
+}
+
+# セキュリティグループ（インバウンド）
+resource "aws_security_group_rule" "ingress_example" {
+	type = "ingress" # インバウンド
+	from_port = "80"
+	to_port = "80"
+	protocol = "tcp"
+	cidr_blocks = ["0.0.0.0/0"]
+	security_group_id = aws_security_group.example.id
 }
