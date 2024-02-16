@@ -219,20 +219,6 @@ resource "aws_vpc" "example_vpc" {
   }
 }
 
-# パブリックネットワーク
-# パブリックサブネット
-# resource "aws_subnet" "example_public" {
-#   vpc_id = aws_vpc.example_vpc.id
-#   cidr_block = "10.0.0.0/24"
-#   # サブネットで起動したインスタンスにパブリックIPアドレスを自動的に割り当てるかどうか
-#   map_public_ip_on_launch = true
-#   availability_zone = "ap-northeast-1a"
-
-# 	tags = {
-#     Name = "terraform_example_public_subnet"
-#   }
-# }
-
 # インターネットゲートウェイ
 resource "aws_internet_gateway" "terraform_example" {
   vpc_id = aws_vpc.example_vpc.id
@@ -434,20 +420,38 @@ resource "aws_route_table_association" "example_public_1" {
 }
 
 
-# ファイヤーウォール
-# セキュリティグループ
-resource "aws_security_group" "example" {
-  name        = "terraform_example"
-  description = "Used in the terraform"
-  vpc_id      = aws_vpc.example_vpc.id
-}
+# # ファイヤーウォール
+# # セキュリティグループ
+# resource "aws_security_group" "example" {
+#   name        = "terraform_example"
+#   description = "Used in the terraform"
+#   vpc_id      = aws_vpc.example_vpc.id
+# }
 
-# セキュリティグループ（インバウンド）
-resource "aws_security_group_rule" "ingress_example" {
-	type = "ingress" # インバウンド
-	from_port = "80"
-	to_port = "80"
-	protocol = "tcp"
-	cidr_blocks = ["0.0.0.0/0"]
-	security_group_id = aws_security_group.example.id
+# # セキュリティグループ（インバウンド）
+# resource "aws_security_group_rule" "ingress_example" {
+# 	type = "ingress" # インバウンド
+# 	from_port = "80"
+# 	to_port = "80"
+# 	protocol = "tcp"
+# 	cidr_blocks = ["0.0.0.0/0"]
+# 	security_group_id = aws_security_group.example.id
+# }
+
+# # セキュリティグループ（アウトバウンド）
+# resource "aws_security_group_rule" "egress_example" {
+# 	type = "egress" # アウトバウンド
+# 	from_port = "0"
+# 	to_port = "0"
+# 	protocol = "-1"
+# 	cidr_blocks = ["0.0.0.0/0"]
+# 	security_group_id = aws_security_group.example.id
+# }
+
+
+
+
+module "example_sg" {
+	source = "./security_group"
+	name = 
 }
