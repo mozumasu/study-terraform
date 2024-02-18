@@ -132,13 +132,13 @@ resource "aws_route_table_association" "example_private_1" {
 # EIPとNATゲートウェイ
 #EIP
 resource "aws_eip" "example_nat_gateway_0" {
-	# domain = "vpc"
-	vpc = true
+	domain = "vpc"
+	# vpc = true
 	depends_on = [aws_internet_gateway.terraform_example]
 }
 resource "aws_eip" "example_nat_gateway_1" {
-	# domain = "vpc"
-	vpc = true
+	domain = "vpc"
+	# vpc = true
 	depends_on = [aws_internet_gateway.terraform_example]
 }
 # NATゲートウェイ
